@@ -1,0 +1,130 @@
+```{r}
+# Assuming your dataset is in a CSV file named "myntra_dataset.csv"
+myntra_data <- read.csv("myntra.csv")
+#Enable for Faster Processing 
+myntra_data <- myntra_data[1:10000, ]
+
+```
+```{r}
+# Check the structure of the dataset
+str(myntra_data)
+
+# View the first few rows of the dataset
+head(myntra_data)
+
+# Summary statistics of numeric columns
+summary(myntra_data$DiscountPrice)
+summary(myntra_data$OriginalPrice)
+
+# Count unique values in categorical columns
+table(myntra_data$BrandName)
+table(myntra_data$Category)
+table(myntra_data$Individual_category)
+table(myntra_data$category_by_Gender)
+```
+```{r}
+#Fillling all the missing values with Na , so that it covers all edge cases
+sum(is.na(myntra_data))
+myntra_data[is.na(myntra_data)] <- NA
+```
+
+
+```{r}
+# Install required packages for visualization if not already installed
+##install.packages("ggplot2")
+##install.packages("dplyr")
+
+# Load the packages
+library(ggplot2)
+library(dplyr)
+
+# Example visualizations
+# Bar plot of product count by brand
+ggplot(myntra_data, aes(x = BrandName)) +
+  geom_bar(fill = "blue") +
+  xlab("Brand") +
+  ylab("Count") +
+  ggtitle("Product Count by Brand")
+
+# Convert the "DiscountPrice" column to numeric
+myntra_data$DiscountPrice <- as.numeric(myntra_data$DiscountPrice)
+
+# Histogram of discount prices
+ggplot(myntra_data, aes(x = DiscountPrice))+
+  geom_histogram(fill = "green", bins = 20) +
+  xlab("Discount Price") +
+  ylab("Frequency") +
+  ggtitle("Distribution of Discount Prices")
+  
+
+# Boxplot of original prices by category
+ggplot(myntra_data, aes(x = Category, y = OriginalPrice))+ 
+  geom_boxplot(fill = "orange")+ 
+  xlab("Category")+
+  ylab("Original Price")+
+  ggtitle("Original Prices by Category")
+
+```
+```{r}
+# Assuming your dataset is named "myntra_data"
+
+# Assuming the binary target variable is "Sold" (1 = sold, 0 = not sold)
+myntra_data$Sold <- ifelse(is.na(myntra_data$DiscountPrice), 0,
+                           ifelse(myntra_data$DiscountPrice < myntra_data$OriginalPrice, 1, 0))
+
+
+# Set a seed for reproducibility
+set.seed(123)
+
+# Split the dataset into training and testing sets
+train_indices <- sample(1:nrow(myntra_data), nrow(myntra_data) * 0.8)  # 80% for training
+train_data <- myntra_data[train_indices, ] # 80% of data
+test_data <- myntra_data[-train_indices, ] # Remaining Data 
+
+# Fit logistic regression model on the training set
+model <- glm(Sold ~ OriginalPrice + Ratings, data = train_data, family = binomial)
+saveRDS(model, "LRModel.rds")
+
+```
+
+```{r}
+# Make predictions on the testing set
+predictions <- predict(model, newdata = test_data, type = "response")
+
+# Convert predicted probabilities into binary predictions
+predicted_classes <- ifelse(predictions >= 0.5, 1, 0)
+
+# Append the predicted classes to the test_data dataframe
+test_data$PredictedClass <- predicted_classes
+
+# View the test_data dataframe with predicted classes
+print(test_data)
+```
+```
+```{r}
+# Assuming you have the predicted classes in the "PredictedClass" column of the test_data dataframe
+# Assuming the actual "Sold" values are in the "Sold" column of the test_data dataframe
+
+# Calculate accuracy
+accuracy <- sum(test_data$PredictedClass == test_data$Sold) / nrow(test_data)
+
+# Calculate precision
+true_positive <- sum(test_data$PredictedClass == 1 & test_data$Sold == 1)
+false_positive <- sum(test_data$PredictedClass == 1 & test_data$Sold == 0)
+precision <- true_positive / (true_positive + false_positive)
+
+# Calculate recall (sensitivity)
+false_negative <- sum(test_data$PredictedClass == 0 & test_data$Sold == 1)
+recall <- true_positive / (true_positive + false_negative)
+
+# Calculate F1 score
+f1_score <- 2 * precision * recall / (precision + recall)
+
+# Print the accuracy metrics
+print(paste("Accuracy:", accuracy))
+print(paste("Precision:", precision))
+print(paste("Recall:", recall))
+print(paste("F1 Score:", f1_score))
+
+```
+
