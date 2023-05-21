@@ -3,6 +3,8 @@ Project Title: Myntra Sales Analysis in R
 Project Description:
 The objective of this project is to analyze and understand the sales data of Myntra. The dataset contains information about various products, including their brand, category, original price, discount price, ratings, and whether they were sold or not.
 
+Link for Dataset: https://www.kaggle.com/code/swetanishad/data-analysis-of-myntra-store
+
 The project involves the following steps:
 
 Data Exploration: Explore the dataset to gain insights into the sales data. Analyze the distribution of variables, identify missing values, and understand any patterns or trends.
